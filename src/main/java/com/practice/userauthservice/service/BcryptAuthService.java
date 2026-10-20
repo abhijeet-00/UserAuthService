@@ -1,5 +1,6 @@
 package com.practice.userauthservice.service;
 
+import com.practice.userauthservice.exception.UserNotFoundException;
 import com.practice.userauthservice.model.Role;
 import com.practice.userauthservice.model.User;
 import com.practice.userauthservice.repository.UserRepository;
@@ -27,5 +28,14 @@ public class BcryptAuthService implements IAuthService {
         user.setCreatedAt(new Date());
         user.setUpdatedAt(new Date());
         return userRepository.save(user);
+    }
+
+    @Override
+    public boolean login(String email, String password) {
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) {
+            throw new UserNotFoundException("User with email " + email + " not found");
+        }
+        return passwordEncoder.matches(password, user.getPassword());
     }
 }

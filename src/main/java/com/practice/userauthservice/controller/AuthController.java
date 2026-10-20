@@ -23,6 +23,24 @@ public class AuthController {
         User user = authService.register(authRequest.getEmail(), authRequest.getPassword(), authRequest.getName());
         return new ResponseEntity<>(from(user), HttpStatus.CREATED);
     }
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody AuthRequest authRequest) {
+        try {
+            boolean loggedIn = authService.login(authRequest.getEmail(), authRequest.getPassword());
+            String msg = "";
+            HttpStatus httpStatus;
+            if (!loggedIn) {
+                msg = "Invalid credentials";
+                httpStatus = HttpStatus.UNAUTHORIZED;
+            } else {
+                msg = "Logged in Successfully";
+                httpStatus = HttpStatus.OK;
+            }
+            return new ResponseEntity<>(msg, httpStatus);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
     private UserDto from(User user) {
         UserDto userDto = new UserDto();
         userDto.setUserId(user.getId());
