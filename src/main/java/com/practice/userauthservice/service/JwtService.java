@@ -1,6 +1,7 @@
 package com.practice.userauthservice.service;
 
 import com.practice.userauthservice.model.Role;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,5 +26,10 @@ public class JwtService implements ITokenService {
                 .signWith(secretKey)
                 .expiration(new Date(System.currentTimeMillis() + jwtExpiration * 1000))
                 .compact();
+    }
+
+    @Override
+    public Claims validateToken(String token) {
+        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
     }
 }
