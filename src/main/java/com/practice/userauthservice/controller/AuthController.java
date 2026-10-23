@@ -26,14 +26,14 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody AuthRequest authRequest) {
         try {
-            boolean loggedIn = authService.login(authRequest.getEmail(), authRequest.getPassword());
+            String token = authService.login(authRequest.getEmail(), authRequest.getPassword());
             String msg = "";
             HttpStatus httpStatus;
-            if (!loggedIn) {
+            if (token == null) {
                 msg = "Invalid credentials";
                 httpStatus = HttpStatus.UNAUTHORIZED;
             } else {
-                msg = "Logged in Successfully";
+                msg = token;
                 httpStatus = HttpStatus.OK;
             }
             return new ResponseEntity<>(msg, httpStatus);

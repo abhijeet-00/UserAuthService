@@ -4,5 +4,5 @@ import com.practice.userauthservice.model.User;
 
 public interface IAuthService {
     User register(String email, String password, String name);
-    boolean login(String email, String password);
+    String login(String email, String password);
 }

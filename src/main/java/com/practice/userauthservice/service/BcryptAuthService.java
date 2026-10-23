@@ -15,6 +15,7 @@ import java.util.Date;
 public class BcryptAuthService implements IAuthService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
+    private final ITokenService tokenService;
     @Override
     public User register(String email, String password, String name) {
         if (userRepository.existsByEmail(email)) {
@@ -31,11 +32,14 @@ public class BcryptAuthService implements IAuthService {
     }
 
     @Override
-    public boolean login(String email, String password) {
+    public String login(String email, String password) {
         User user = userRepository.findByEmail(email).orElse(null);
         if (user == null) {
             throw new UserNotFoundException("User with email " + email + " not found");
         }
-        return passwordEncoder.matches(password, user.getPassword());
+        if(!passwordEncoder.matches(password, user.getPassword())) {
+            return null;
+        }
+        return tokenService.generateToken(email);
     }
 }
