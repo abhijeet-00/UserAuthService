@@ -24,6 +24,7 @@ public class JwtService implements ITokenService {
     public String generateToken(String subject) {
         return Jwts.builder().subject(subject).claim("role", Role.USER)
                 .signWith(secretKey)
+                .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + jwtExpiration * 1000))
                 .compact();
     }

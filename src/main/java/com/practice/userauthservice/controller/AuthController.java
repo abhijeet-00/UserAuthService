@@ -4,6 +4,7 @@ import com.practice.userauthservice.model.User;
 import com.practice.userauthservice.model.dto.AuthRequest;
 import com.practice.userauthservice.model.dto.UserDto;
 import com.practice.userauthservice.service.IAuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,12 +20,12 @@ public class AuthController {
     private final IAuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<UserDto> register(@RequestBody AuthRequest authRequest) {
+    public ResponseEntity<UserDto> register(@Valid @RequestBody AuthRequest authRequest) {
         User user = authService.register(authRequest.getEmail(), authRequest.getPassword(), authRequest.getName());
         return new ResponseEntity<>(from(user), HttpStatus.CREATED);
     }
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody AuthRequest authRequest) {
+    public ResponseEntity<String> login(@Valid @RequestBody AuthRequest authRequest) {
         try {
             String token = authService.login(authRequest.getEmail(), authRequest.getPassword());
             String msg = "";

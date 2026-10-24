@@ -1,5 +1,7 @@
 package com.practice.userauthservice.model.dto;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -8,8 +10,9 @@ import lombok.Setter;
 @Setter
 public class AuthRequest {
     private String name;
-    @NonNull
+    @NotBlank
+    @Email
     private String email;
-    @NonNull
+    @NotBlank
     private String password;
 }
