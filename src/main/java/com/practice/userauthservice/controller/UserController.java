@@ -24,6 +24,7 @@ public class UserController {
         userDto.setUserId(user.getId());
         userDto.setName(user.getName());
         userDto.setEmail(user.getEmail());
+        userDto.setRole(user.getRole());
         return userDto;
     }
 }

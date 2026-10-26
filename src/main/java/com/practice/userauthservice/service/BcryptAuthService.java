@@ -40,6 +40,6 @@ public class BcryptAuthService implements IAuthService {
         if(!passwordEncoder.matches(password, user.getPassword())) {
             return null;
         }
-        return tokenService.generateToken(email);
+        return tokenService.generateToken(user);
     }
 }

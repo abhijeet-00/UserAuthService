@@ -1,6 +1,7 @@
 package com.practice.userauthservice.service;
 
 import com.practice.userauthservice.model.Role;
+import com.practice.userauthservice.model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -21,8 +22,8 @@ public class JwtService implements ITokenService {
     }
 
     @Override
-    public String generateToken(String subject) {
-        return Jwts.builder().subject(subject).claim("role", Role.USER)
+    public String generateToken(User user) {
+        return Jwts.builder().subject(user.getEmail()).claim("role", user.getRole().name())
                 .signWith(secretKey)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + jwtExpiration * 1000))
