@@ -1,6 +1,5 @@
 package com.practice.userauthservice.service;
 
-import com.practice.userauthservice.model.Role;
 import com.practice.userauthservice.model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
