@@ -1,0 +1,25 @@
+name: User Auth - build and run tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      - name: Build with Maven
+        run: mvn -B package -DskipTests --file pom.xml
+      - name: Run service tests
+        run: mvn -B test -Dtest=BcryptAuthServiceTests,JwtServiceTests -Dsurefire.failIfNoSpecifiedTests=false --file pom.xml
