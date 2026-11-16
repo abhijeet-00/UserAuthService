@@ -22,4 +22,4 @@ jobs:
       - name: Build with Maven
         run: mvn -B package -DskipTests --file pom.xml
       - name: Run service tests
-        run: mvn -B test -Dtest=BcryptAuthServiceTests,JwtServiceTests -Dsurefire.failIfNoSpecifiedTests=false --file pom.xml
+        run: mvn -B test -Dtest=BcryptAuthServiceTests,JwtServiceTests,AuthControllerTests,UserControllerTests -Dsurefire.failIfNoSpecifiedTests=false --file pom.xml
