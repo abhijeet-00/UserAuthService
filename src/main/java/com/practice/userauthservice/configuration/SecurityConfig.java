@@ -1,6 +1,7 @@
 package com.practice.userauthservice.configuration;
 
 import com.practice.userauthservice.security.JwtAuthenticationFilter;
+import com.practice.userauthservice.security.SocialLoginSuccessHandler;
 import com.practice.userauthservice.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -18,6 +19,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final JwtService jwtService;
+    private final SocialLoginSuccessHandler socialLoginSuccessHandler;
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -31,7 +33,8 @@ public class SecurityConfig {
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .addFilterBefore(new JwtAuthenticationFilter(jwtService), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/auth/**").permitAll()
-                        .anyRequest().authenticated());
+                        .anyRequest().authenticated())
+                .oauth2Login(oauth -> oauth.successHandler(socialLoginSuccessHandler));
         return httpSecurity.build();
     }
 }
