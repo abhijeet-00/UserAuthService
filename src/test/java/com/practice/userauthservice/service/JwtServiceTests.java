@@ -6,10 +6,14 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.security.SignatureException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
+
+import java.security.NoSuchAlgorithmException;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -19,11 +23,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class JwtServiceTests {
     private static final String EMAIL = "xyz@gmail.com";
-    private static final String SECRET = "test-secret-key-that-is-at-least-32-bytes-long";
-    private static final String OTHER_SECRET = "other-secret-key-that-is-at-least-32-bytes-long";
+    private static final String AUDIENCE = "shopnest-api";
+    private static final String ISSUER = "User Auth Service";
     private static final long EXPIRATION_SECONDS = 3600L;
 
-    private final JwtService jwtService = new JwtService(SECRET, EXPIRATION_SECONDS);
+    private JwtService jwtService;
+
+    @BeforeEach
+    void setUp() throws NoSuchAlgorithmException {
+        jwtService = new JwtService(EXPIRATION_SECONDS, AUDIENCE);
+    }
 
     @Test
     void generateToken_returnsThreePartJwt() {
@@ -51,6 +60,16 @@ public class JwtServiceTests {
         Claims claims = jwtService.validateToken(token);
 
         assertEquals(role.name(), claims.get("role", String.class));
+    }
+
+    @Test
+    void generateToken_includesAudienceAndIssuer() {
+        String token = jwtService.generateToken(buildUser(Role.USER));
+
+        Claims claims = jwtService.validateToken(token);
+
+        assertTrue(claims.getAudience().contains(AUDIENCE));
+        assertEquals(ISSUER, claims.getIssuer());
     }
 
     @Test
@@ -86,16 +105,17 @@ public class JwtServiceTests {
     }
 
     @Test
-    void validateToken_expiredToken_throwsExpiredJwtException() {
-        JwtService expiredTokenService = new JwtService(SECRET, -10L);
+    void validateToken_expiredToken_throwsExpiredJwtException() throws NoSuchAlgorithmException {
+        JwtService expiredTokenService = new JwtService(-10L, AUDIENCE);
         String token = expiredTokenService.generateToken(buildUser(Role.USER));
 
-        assertThrows(ExpiredJwtException.class, () -> jwtService.validateToken(token));
+        // Validate with the same instance: each service has its own RSA key pair.
+        assertThrows(ExpiredJwtException.class, () -> expiredTokenService.validateToken(token));
     }
 
     @Test
-    void validateToken_tokenSignedWithDifferentSecret_throwsSignatureException() {
-        JwtService otherService = new JwtService(OTHER_SECRET, EXPIRATION_SECONDS);
+    void validateToken_tokenSignedWithDifferentKeyPair_throwsSignatureException() throws NoSuchAlgorithmException {
+        JwtService otherService = new JwtService(EXPIRATION_SECONDS, AUDIENCE);
         String token = otherService.generateToken(buildUser(Role.USER));
 
         assertThrows(SignatureException.class, () -> jwtService.validateToken(token));
@@ -122,6 +142,26 @@ public class JwtServiceTests {
     @NullAndEmptySource
     void validateToken_nullOrEmptyToken_throwsIllegalArgumentException(String token) {
         assertThrows(IllegalArgumentException.class, () -> jwtService.validateToken(token));
+    }
+
+    @Test
+    void publicKeyAsJwk_returnsRsaSignatureKey() {
+        Map<String, Object> jwk = jwtService.publicKeyAsJwk();
+
+        assertEquals("RSA", jwk.get("kty"));
+        assertEquals("sig", jwk.get("use"));
+        assertEquals("RS256", jwk.get("alg"));
+        assertNotBlank(jwk.get("kid"));
+        assertNotBlank(jwk.get("n"));
+        assertNotBlank(jwk.get("e"));
+
+        assertEquals(jwk.get("kid"), jwtService.publicKeyAsJwk().get("kid"),
+                "the key id should be stable for the lifetime of the service");
+    }
+
+    private void assertNotBlank(Object value) {
+        assertNotNull(value);
+        assertFalse(((String) value).isBlank());
     }
 
     private User buildUser(Role role) {

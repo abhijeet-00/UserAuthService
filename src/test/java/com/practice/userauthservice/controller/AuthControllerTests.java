@@ -3,6 +3,7 @@ package com.practice.userauthservice.controller;
 import com.practice.userauthservice.configuration.SecurityConfig;
 import com.practice.userauthservice.model.Role;
 import com.practice.userauthservice.model.User;
+import com.practice.userauthservice.security.SocialLoginSuccessHandler;
 import com.practice.userauthservice.service.IAuthService;
 import com.practice.userauthservice.service.JwtService;
 import org.junit.jupiter.api.Test;
@@ -35,6 +36,8 @@ public class AuthControllerTests {
     private IAuthService authService;
     @MockitoBean
     private JwtService jwtService;
+    @MockitoBean
+    private SocialLoginSuccessHandler socialLoginSuccessHandler;
 
     @Test
     void register_validRequest_returnsCreatedUserDto() throws Exception {

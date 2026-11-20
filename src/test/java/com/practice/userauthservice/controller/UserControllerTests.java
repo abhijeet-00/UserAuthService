@@ -4,6 +4,7 @@ import com.practice.userauthservice.configuration.SecurityConfig;
 import com.practice.userauthservice.model.Role;
 import com.practice.userauthservice.model.User;
 import com.practice.userauthservice.repository.UserRepository;
+import com.practice.userauthservice.security.SocialLoginSuccessHandler;
 import com.practice.userauthservice.service.JwtService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,8 @@ public class UserControllerTests {
     private UserRepository userRepository;
     @MockitoBean
     private JwtService jwtService;
+    @MockitoBean
+    private SocialLoginSuccessHandler socialLoginSuccessHandler;
 
     @Test
     void getUser_authenticatedUser_returnsUserDto() throws Exception {

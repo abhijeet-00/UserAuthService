@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.security.NoSuchAlgorithmException;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -25,13 +27,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ActiveProfiles("test")
 class JwtServiceIntegrationTests {
     private static final String EMAIL = "xyz@gmail.com";
-    private static final String OTHER_SECRET = "other-secret-key-that-is-at-least-32-bytes-long";
+    private static final String ISSUER = "User Auth Service";
 
     @Autowired
     private JwtService jwtService;
 
-    @Value("${jwt.secret}")
-    private String secret;
+    @Value("${jwt.audience}")
+    private String audience;
 
     @Value("${jwt.expiration}")
     private long expirationSeconds;
@@ -62,6 +64,16 @@ class JwtServiceIntegrationTests {
         Claims claims = jwtService.validateToken(token);
 
         assertEquals(role.name(), claims.get("role", String.class));
+    }
+
+    @Test
+    void generateToken_includesAudienceAndIssuer() {
+        String token = jwtService.generateToken(buildUser(Role.USER));
+
+        Claims claims = jwtService.validateToken(token);
+
+        assertTrue(claims.getAudience().contains(audience));
+        assertEquals(ISSUER, claims.getIssuer());
     }
 
     @Test
@@ -97,16 +109,17 @@ class JwtServiceIntegrationTests {
     }
 
     @Test
-    void validateToken_expiredToken_throwsExpiredJwtException() {
-        JwtService expiredTokenService = new JwtService(secret, -10L);
+    void validateToken_expiredToken_throwsExpiredJwtException() throws NoSuchAlgorithmException {
+        JwtService expiredTokenService = new JwtService(-10L, audience);
         String token = expiredTokenService.generateToken(buildUser(Role.USER));
 
-        assertThrows(ExpiredJwtException.class, () -> jwtService.validateToken(token));
+        // Validate with the same instance: each service has its own RSA key pair.
+        assertThrows(ExpiredJwtException.class, () -> expiredTokenService.validateToken(token));
     }
 
     @Test
-    void validateToken_tokenSignedWithDifferentSecret_throwsSignatureException() {
-        JwtService otherService = new JwtService(OTHER_SECRET, expirationSeconds);
+    void validateToken_tokenSignedWithDifferentKeyPair_throwsSignatureException() throws NoSuchAlgorithmException {
+        JwtService otherService = new JwtService(expirationSeconds, audience);
         String token = otherService.generateToken(buildUser(Role.USER));
 
         assertThrows(SignatureException.class, () -> jwtService.validateToken(token));
